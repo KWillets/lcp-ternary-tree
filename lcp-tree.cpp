@@ -8,6 +8,8 @@
 // these branch-off lcp's are stored in a ternary search tree 
 // whose nodes each point to another StringNode/recursive TPT
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 inline int lcpstrcmp( char * p, char * q, int &i) {
   for( ; q[i] == p[i] && q[i]; i++ )
@@ -97,7 +99,7 @@ void LcpNode<ascending>::Insert( char *s, int slcp ) {
       left->Insert( s, lcp );
   } else {
     if( !right )
-      right = new LcpNode<ascending>( s, lcp );
+      right = new LcpNode<ascending>( s, slcp );
     else
       right->Insert( s, lcp );
   }
@@ -135,15 +137,46 @@ void LcpNode<ascending>::print( char * src, int slcp ) {  // use parent pivot to
 }
 
 
+char ** readitems( char *fname, int *pn ) {
+  int n=0;
+  char **s = NULL;
+  FILE * fd = fopen(fname, "r");
+  if( fd == NULL ) 
+    fprintf(stderr, "fopen %s failed\n", fname);
+  else {
+    int nalloc = 1<<16;
+    s=(char **) calloc(sizeof(char *), nalloc);
+
+    char buf[32000];
+    while( fgets(buf, 32000, fd) ) {
+      if( n >= nalloc ) {
+        nalloc <<=1;
+        s = (char **) realloc( s, sizeof(char *) * nalloc);
+      }
+        
+      s[n++] = strdup(buf);
+
+    }
+  }
+  *pn = n;
+  return s;
+}
+
+
+
 int main( int argc, char **argv) {
 
-  StringNode *root = new StringNode( "abcd" );
-  root->Insert( "abcc" );
-  root->Insert( "abz" );
-  root->Insert( "abx" );
+  int n=0;
+  char ** strings = readitems( argv[1], &n );
+  StringNode *root = new StringNode( strings[0] );
+  for( int i = 1; i < n ; i++ )
+      root->Insert( strings[i] );
+
   root->print( "*", 0 );
-  if( root->Search("abcc"))
-    printf( "abcc found\n" );
+
+  char * s=strings[n/2];
+  if( root->Search(s))
+    printf( "%s found\n", s );
   if( root->Search("abx"))
     printf( "abx found\n" );
 }
