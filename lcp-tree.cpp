@@ -45,7 +45,7 @@ public:
   LcpNode( char *s, int slcp );
   bool Search( char *s, int slcp );
   void Insert( char *s, int slcp );
-  void print( char * src);
+  void print( char * src, int slcp );
 };
 
 
@@ -53,6 +53,7 @@ public:
 //=====
 
 StringNode::StringNode( char * s ) {
+  printf("Stringnode: %s\n", s);
   pivot = s;
 }
 
@@ -104,10 +105,10 @@ void LcpNode<ascending>::Insert( char *s, int slcp ) {
 
 void StringNode::print( char * src, int lcp ) {
     char buf[500]; // concatenated path labels for use by descendants 
-    sprintf( buf, "%*s%s", lcp, src, pivot );
-    if( left ) left->print( src );
+    sprintf( buf, "%.*s%s", lcp, src, pivot );
+    if( left ) left->print( buf, lcp );
     printf("%s\n", buf );
-    if( right ) right->print(src);
+    if( right ) right->print( buf, lcp );
 };
 
 template<bool ascending>
@@ -127,10 +128,22 @@ bool LcpNode<ascending>::Search( char *s, int slcp ) {
 }
 
 template<bool ascending>
-void LcpNode<ascending>::print( char * src) {  // use parent pivot to print up to lcp
-  if(left ) left->print( src );
-  middle->print( src, lcp );
-  if(right) right->print( src );
+void LcpNode<ascending>::print( char * src, int slcp ) {  // use parent pivot to print up to lcp
+  if(left ) left->print( src, slcp );
+  middle->print( src, lcp+slcp );
+  if(right) right->print( src, slcp );
 }
 
 
+int main( int argc, char **argv) {
+
+  StringNode *root = new StringNode( "abcd" );
+  root->Insert( "abcc" );
+  root->Insert( "abz" );
+  root->Insert( "abx" );
+  root->print( "*", 0 );
+  if( root->Search("abcc"))
+    printf( "abcc found\n" );
+  if( root->Search("abx"))
+    printf( "abx found\n" );
+}
