@@ -55,7 +55,7 @@ public:
 //=====
 
 StringNode::StringNode( char * s ) {
-  printf("Stringnode: %s\n", s);
+  //printf("Stringnode: %s\n", s);
   pivot = s;
 }
 
@@ -90,7 +90,7 @@ void StringNode::Insert( char * s ) {
 
 template<bool ascending>
 void LcpNode<ascending>::Insert( char *s, int slcp ) {
-  printf("Insert: %c %d new=%d\n", ascending ? '+' : '-', lcp, slcp );
+  //printf("Insert: %c %d new=%d\n", ascending ? '+' : '-', lcp, slcp );
   if( slcp == lcp )
     middle->Insert( s );
   else if( ascending ? slcp < lcp : slcp > lcp ) {
@@ -116,7 +116,7 @@ void StringNode::print( char * src, int lcp ) {
 
 template<bool ascending>
  LcpNode<ascending>::LcpNode( char *s, int slcp ) {
-  printf( "LcpNode %c %d\n", ascending ? '+' : '-', slcp );
+  //printf( "LcpNode %c %d\n", ascending ? '+' : '-', slcp );
   lcp = slcp;
   middle = new StringNode( s );
 }
@@ -149,14 +149,17 @@ char ** readitems( char *fname, int *pn ) {
     int nalloc = 1<<16;
     s=(char **) calloc(sizeof(char *), nalloc);
 
-    char buf[32000];
-    while( fgets(buf, 32000, fd) ) {
+    char *pp=NULL;
+    ssize_t ll=0;
+    size_t l=0;
+    while( 0 < (ll = getline(&pp, &l, fd)) ) {
+      pp[ll-1] ='\0';
       if( n >= nalloc ) {
         nalloc <<=1;
         s = (char **) realloc( s, sizeof(char *) * nalloc);
       }
         
-      s[n++] = strdup(buf);
+      s[n++] = strdup(pp);
 
     }
   }
@@ -176,9 +179,10 @@ int main( int argc, char **argv) {
 
   root->print( "*", 0 );
 
-  char * s=strings[n/2];
-  if( root->Search(s))
-    printf( "%s found\n", s );
-  if( root->Search("abx"))
-    printf( "abx found\n" );
+  printf("\n\n==== search tests ====\n");
+  for( int j = 0; j < 10; j++ ) {
+    char * s=strings[ rand() % n ];
+
+    printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
+  }
 }
