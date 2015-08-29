@@ -71,7 +71,7 @@ bool StringNode::Search( char * s ) {
 }
 
 void StringNode::Insert( char * s ) {
-  int lcp=0;
+  int lcp = 0;
   int cmpr = lcpstrcmp( pivot, s, lcp );
     if( cmpr == 0 )
       return;  // already there
@@ -90,18 +90,19 @@ void StringNode::Insert( char * s ) {
 
 template<bool ascending>
 void LcpNode<ascending>::Insert( char *s, int slcp ) {
+  printf("Insert: %c %d new=%d\n", ascending ? '+' : '-', lcp, slcp );
   if( slcp == lcp )
     middle->Insert( s );
   else if( ascending ? slcp < lcp : slcp > lcp ) {
     if( !left )
       left = new LcpNode<ascending>( s, slcp );
     else
-      left->Insert( s, lcp );
+      left->Insert( s, slcp );
   } else {
     if( !right )
       right = new LcpNode<ascending>( s, slcp );
     else
-      right->Insert( s, lcp );
+      right->Insert( s, slcp );
   }
 }
 
@@ -115,6 +116,7 @@ void StringNode::print( char * src, int lcp ) {
 
 template<bool ascending>
  LcpNode<ascending>::LcpNode( char *s, int slcp ) {
+  printf( "LcpNode %c %d\n", ascending ? '+' : '-', slcp );
   lcp = slcp;
   middle = new StringNode( s );
 }
