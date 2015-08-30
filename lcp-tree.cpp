@@ -24,14 +24,17 @@ class StringNode {
   char * pivot = NULL ;
   LcpNode<true> *left   = NULL;
   LcpNode<false> *right = NULL;
-  
+  static int max_id;
+
 public:
   StringNode( char * s );
   bool Search( char * s );
   void Insert( char * s );
   void print( char * src, int lcp );
+  void graph( int parent_id );
 };
   
+int StringNode::max_id=0;
 // a ternary search tree of int lcp keys
 // a match leads to a StringNode which is the root of 
 // a recursive TPT for strings with the same common prefix
@@ -48,9 +51,15 @@ public:
   bool Search( char *s, int slcp );
   void Insert( char *s, int slcp );
   void print( char * src, int slcp );
+  void graph( int parent_id );
+  static int max_id;
 };
 
+template<>
+int LcpNode<false>::max_id=1;
 
+template<>
+int LcpNode<true>::max_id=3;
 
 //=====
 
@@ -114,6 +123,28 @@ void StringNode::print( char * src, int lcp ) {
     if( right ) right->print( buf, lcp );
 };
 
+void StringNode::graph( int parent_id ) {
+  int my_id = max_id;
+  max_id += 2;
+  printf( "Node%d[label=\"%s\" shape=rect ];\n", my_id, pivot );
+  if( parent_id >=0) printf(" Node%d->Node%d;\n", parent_id, my_id );
+  if( left ) left->graph( my_id );
+  if( right ) right->graph( my_id );
+}
+
+template<bool ascending>
+void LcpNode<ascending>::graph( int parent_id ) {
+  int my_id = max_id;
+  max_id += 4;
+  printf( "Node%d[label=\"%d\" shape=ellipse ];\n Node%d->Node%d;\n", my_id, lcp, parent_id, my_id );
+  if( parent_id % 2 )
+    printf("{rank=same; Node%d; Node%d }\n", parent_id, my_id );
+  if( left ) left->graph( my_id );
+  middle->graph(my_id);
+  if( right ) right->graph( my_id );
+}
+
+
 template<bool ascending>
  LcpNode<ascending>::LcpNode( char *s, int slcp ) {
   //printf( "LcpNode %c %d\n", ascending ? '+' : '-', slcp );
@@ -171,6 +202,8 @@ char ** readitems( char *fname, int *pn ) {
 
 int main( int argc, char **argv) {
 
+  //  LcpNode<false>::max_id=1; // odds
+  //LcpNode<true>::max_id=3; // odds
   int n=0;
   char ** strings = readitems( argv[1], &n );
   StringNode *root = new StringNode( strings[0] );
@@ -185,4 +218,7 @@ int main( int argc, char **argv) {
 
     printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
   }
+  printf("\n\n==== graphviz ====\ndigraph g {\n");
+  root->graph(-1);
+  printf("}\n\n");
 }
