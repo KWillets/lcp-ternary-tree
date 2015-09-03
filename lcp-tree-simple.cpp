@@ -25,6 +25,7 @@ class Node {
 
   Node *left;
   Node *right;
+  static int node_id;
 
   void revPrint( char *parentVal, int plcp ) {
     if( next )
@@ -85,8 +86,27 @@ public:
     // right, recursively? or reverse & print
     if(right) right->revPrint( buf, plcp+lcp );
   };
+
+  void revGraph( int parent_id ) {
+    if( next )
+      next->revGraph( parent_id );
+    Graph(parent_id);
+  };
+
+  void Graph( int parent_id ) {
+    int my_id=node_id++;
+    // left
+    for( Node *p=left; p; p=p->next )
+      p->Graph(my_id);
+
+    printf("Node%d[ label=\"%s\" ]\n", my_id, value );
+    if(parent_id >= 0)  
+      printf("Node%d -> Node%d[ label=\"%d\" ]\n", parent_id, my_id, lcp);
+    if(right) right->revGraph(my_id);
+  };
 };
 
+int Node::node_id=0;
 
 char ** readitems( char *fname, int *pn ) {
   int n=0;
@@ -136,8 +156,8 @@ int main( int argc, char **argv) {
 
     printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
   }
-  //printf("\n\n==== graphviz ====\ndigraph g {\n");
-  //root->graph(-1, "");
-  //printf("}\n\n");
+  printf("\n\n==== graphviz ====\ndigraph g {\n");
+  root->Graph(-1 );
+  printf("}\n\n");
 }
 
