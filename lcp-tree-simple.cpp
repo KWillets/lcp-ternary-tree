@@ -35,7 +35,8 @@ class Node {
 public:
 
   Node( char *val, int _lcp, Node *_next ) : value(val), lcp(_lcp), next(_next), left(0), right(0)
-  { printf("Node:  %s  %d\n", val, _lcp); };
+  { //printf("Node:  %s  %d\n", val, _lcp); 
+  };
   
   bool Search( char *val ) {
     int vlcp = 0;
@@ -99,9 +100,12 @@ public:
     for( Node *p=left; p; p=p->next )
       p->Graph(my_id);
 
-    printf("Node%d[ label=\"%s\" ]\n", my_id, value );
+    printf("Node%d[ label=<<table><tr><td port=\"port0\"></td>", my_id );
+    for(int i=0; value[i]; i++ )
+      printf("<td port=\"port%d\">%c</td>", i+1, value[i] );
+    printf("</tr></table>> ]\n");
     if(parent_id >= 0)  
-      printf("Node%d -> Node%d[ label=\"%d\" ]\n", parent_id, my_id, lcp);
+      printf("Node%d:port%d -> Node%d[ label=\"%d\" ]\n", parent_id, lcp,  my_id, lcp);
     if(right) right->revGraph(my_id);
   };
 };
@@ -150,13 +154,13 @@ int main( int argc, char **argv) {
 
   root->Print( "*", 0 );
 
-  printf("\n\n==== search tests ====\n");
-  for( int j = 0; j < 10; j++ ) {
-    char * s=strings[ rand() % n ];
+  //printf("\n\n==== search tests ====\n");
+  //for( int j = 0; j < 10; j++ ) {
+  //  char * s=strings[ rand() % n ];
 
-    printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
-  }
-  printf("\n\n==== graphviz ====\ndigraph g {\n");
+  //  printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
+  //}
+    printf("\n\n==== graphviz ====\ndigraph g {\nrankdir=LR\nnode [shape=plaintext]\n");
   root->Graph(-1 );
   printf("}\n\n");
 }
