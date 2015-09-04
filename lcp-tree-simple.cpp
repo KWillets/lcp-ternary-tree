@@ -88,25 +88,26 @@ public:
     if(right) right->revPrint( buf, plcp+lcp );
   };
 
-  void revGraph( int parent_id ) {
+  void revGraph( int parent_id, char *port ) {
     if( next )
-      next->revGraph( parent_id );
-    Graph(parent_id);
+      next->revGraph( parent_id, port );
+    Graph(parent_id, port);
   };
 
-  void Graph( int parent_id ) {
+  void Graph( int parent_id, char * port ) {
     int my_id=node_id++;
     // left
     for( Node *p=left; p; p=p->next )
-      p->Graph(my_id);
+      p->Graph(my_id, "ne" );
 
     printf("Node%d[ label=<<table><tr><td port=\"port0\"></td>", my_id );
     for(int i=0; value[i]; i++ )
       printf("<td port=\"port%d\">%c</td>", i+1, value[i] );
     printf("</tr></table>> ]\n");
+
     if(parent_id >= 0)  
-      printf("Node%d:port%d -> Node%d[ label=\"%d\" ]\n", parent_id, lcp,  my_id, lcp);
-    if(right) right->revGraph(my_id);
+      printf("Node%d:port%d:%s -> Node%d[ label=\"%d\" ]\n", parent_id, lcp, port,  my_id, lcp);
+    if(right) right->revGraph(my_id, "se");
   };
 };
 
@@ -161,7 +162,7 @@ int main( int argc, char **argv) {
   //  printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
   //}
     printf("\n\n==== graphviz ====\ndigraph g {\nrankdir=LR\nnode [shape=plaintext]\n");
-  root->Graph(-1 );
+    root->Graph(-1, "*" );
   printf("}\n\n");
 }
 
