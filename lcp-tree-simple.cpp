@@ -88,28 +88,36 @@ public:
     if(right) right->revPrint( buf, plcp+lcp );
   };
 
-  void revGraph( int parent_id, char *port ) {
+  void revGraph( FILE *ofd, int parent_id, char *port ) {
     if( next )
-      next->revGraph( parent_id, port );
-    Graph(parent_id, port);
+      next->revGraph( ofd, parent_id, port );
+    Graph(ofd, parent_id, port);
   };
 
-  void Graph( int parent_id, char * port ) {
+  void Graph( FILE * ofd, int parent_id, char * port ) {
     int my_id=node_id++;
     // left
     for( Node *p=left; p; p=p->next )
-      p->Graph(my_id, "ne" );
+      p->Graph(ofd, my_id, "n" );
 
-    printf("Node%d[ label=<<table><tr><td port=\"port0\"></td>", my_id );
+    fprintf(ofd, "Node%d[ label=<<font face=\"Courier\"><table cellborder=\"0\" cellspacing=\"0\"><tr><td port=\"port0\"></td>", my_id );
     for(int i=0; value[i]; i++ )
-      printf("<td port=\"port%d\">%c</td>", i+1, value[i] );
-    printf("</tr></table>> ]\n");
+      fprintf(ofd, "<td port=\"port%d\">%c</td>", i+1, value[i] );
+    fprintf(ofd, "</tr></table></font>> ]\n");
 
     if(parent_id >= 0)  
-      printf("Node%d:port%d:%s -> Node%d[ label=\"%d\" ]\n", parent_id, lcp, port,  my_id, lcp);
-    if(right) right->revGraph(my_id, "se");
+      fprintf(ofd, "Node%d:port%d:%s -> Node%d:port0:w[ taillabel=\"%d\" ]\n", parent_id, lcp, port,  my_id, lcp);
+    if(right) right->revGraph(ofd, my_id, "s");
   };
 };
+
+void Rotate( Node *p, int plcp, int sign ) {
+  // not sure how to get lcp(this->value, p->value ) -- pass in  plcp?  need sign too
+
+  // move this->left/right->x : x.lcp < plcp to pivot left/right
+  // merge x: x.lcp == plcp and sign 
+}
+
 
 int Node::node_id=0;
 
@@ -141,6 +149,15 @@ char ** readitems( char *fname, int *pn ) {
   return s;
 }
 
+void medianinsert( char **strings, int lo, int hi, Node *root ) {
+  if( lo > hi )
+    return;
+  
+  int m = (lo+hi)/2;
+  root->Insert( strings[m] );
+  medianinsert( strings, lo, m-1, root );
+  medianinsert( strings, m+1, hi, root );
+}
 
 
 int main( int argc, char **argv) {
@@ -149,10 +166,12 @@ int main( int argc, char **argv) {
   //LcpNode<true>::max_id=3; // odds
   int n=0;
   char ** strings = readitems( argv[1], &n );
-  Node *root = new Node( strings[0], 0, 0 );
-  for( int i = 1; i < n ; i++ )
-    root->Insert( strings[i] );
+  Node *root = new Node( strings[n/2], 0, 0 );
+  //  for( int i = 1; i < n ; i++ )
+  //  root->Insert( strings[i] );
 
+  medianinsert( strings, 0, n/2-1, root);
+  medianinsert( strings, n/2+1, n-1, root);
   root->Print( "*", 0 );
 
   //printf("\n\n==== search tests ====\n");
@@ -161,8 +180,10 @@ int main( int argc, char **argv) {
 
   //  printf( "%s %s found\n", s, root->Search(s) ? "" : "not" );
   //}
-    printf("\n\n==== graphviz ====\ndigraph g {\nrankdir=LR\nnode [shape=plaintext]\n");
-    root->Graph(-1, "*" );
-  printf("}\n\n");
+  printf("\n\n==== graphviz ====\n");
+  FILE * ofd = fopen( "out.dot", "w" );
+  fprintf( ofd, "digraph g {\nrankdir=LR\nnode [shape=plaintext]\n");
+  root->Graph(ofd, -1, "*" );
+  fprintf(ofd, "}\n\n");
 }
 
