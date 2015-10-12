@@ -27,10 +27,10 @@ class Node {
   Node *right;
   static int node_id;
 
-  void revPrint( char *parentVal, int plcp ) {
+  void revPrint( char *parentVal, int plcp, int depth ) {
     if( next )
-      next->revPrint( parentVal, plcp );
-    Print(parentVal, plcp );
+      next->revPrint( parentVal, plcp, depth );
+    Print(parentVal, plcp, depth-1 );
   }
 public:
 
@@ -73,32 +73,36 @@ public:
       
   };
 
-  void Print( char * parentVal, int plcp ) {
+  void Print( char * parentVal, int plcp, int depth ) {
     char buf[500];
     memcpy(buf, parentVal, plcp+lcp );
     strcpy(buf+plcp+lcp, value);
 
     // left 
     for( Node *p=left; p; p=p->next )
-      p->Print(buf, plcp+lcp );
+      p->Print(buf, plcp+lcp, depth-1 );
 
     printf("%s\n", buf );
     
     // right, recursively? or reverse & print
-    if(right) right->revPrint( buf, plcp+lcp );
+    if(right) right->revPrint( buf, plcp+lcp, depth-1 );
   };
 
-  void revGraph( FILE *ofd, int parent_id, char *port ) {
+  void revGraph( FILE *ofd, int parent_id, char *port, int depth ) {
     if( next )
-      next->revGraph( ofd, parent_id, port );
-    Graph(ofd, parent_id, port);
+      next->revGraph( ofd, parent_id, port, depth  );
+    Graph(ofd, parent_id, port, depth-1 );
   };
 
-  void Graph( FILE * ofd, int parent_id, char * port ) {
+  void Graph( FILE * ofd, int parent_id, char * port, int depth ) {
+
+    if( depth <= 0 )
+      return;
+
     int my_id=node_id++;
     // left
     for( Node *p=left; p; p=p->next )
-      p->Graph(ofd, my_id, "n" );
+      p->Graph(ofd, my_id, "n", depth-1 );
 
     fprintf(ofd, "Node%d[ label=<<font face=\"Courier\"><table cellborder=\"0\" cellspacing=\"0\"><tr><td port=\"port0\"></td>", my_id );
     for(int i=0; value[i]; i++ )
@@ -107,7 +111,7 @@ public:
 
     if(parent_id >= 0)  
       fprintf(ofd, "Node%d:port%d:%s -> Node%d:port0:w[ taillabel=\"%d\" ]\n", parent_id, lcp, port,  my_id, lcp);
-    if(right) right->revGraph(ofd, my_id, "s");
+    if(right) right->revGraph(ofd, my_id, "s", depth-1 );
   };
 };
 
@@ -172,7 +176,7 @@ int main( int argc, char **argv) {
 
   medianinsert( strings, 0, n/2-1, root);
   medianinsert( strings, n/2+1, n-1, root);
-  root->Print( "*", 0 );
+  //root->Print( "*", 0, 99999 );
 
   //printf("\n\n==== search tests ====\n");
   //for( int j = 0; j < 10; j++ ) {
@@ -183,7 +187,7 @@ int main( int argc, char **argv) {
   printf("\n\n==== graphviz ====\n");
   FILE * ofd = fopen( "out.dot", "w" );
   fprintf( ofd, "digraph g {\nrankdir=LR\nnode [shape=plaintext]\n");
-  root->Graph(ofd, -1, "*" );
+  root->Graph(ofd, -1, "*", 9999 );
   fprintf(ofd, "}\n\n");
 }
 
